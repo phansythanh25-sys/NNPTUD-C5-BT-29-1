@@ -4,7 +4,7 @@
 // Thay URL bên dưới bằng link RAW db.json của bạn từ GitHub
 // Ví dụ: https://raw.githubusercontent.com/ThanhHollow/fetch-data-exercise/main/db.json
 
-const API_URL = "https://raw.githubusercontent.com/phansythanh25-sys/NNPTUD-C5-BT-29-1/refs/heads/main/db.json";
+const API_URL = "https://raw.githubusercontent.com/phansythanh25-sys/NNPTUD-C5-BT-29-1/main/db.json";
 
 /**
  * Hàm loadData: Lấy dữ liệu từ GitHub và hiển thị trên trang
