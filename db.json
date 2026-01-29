@@ -1,7 +1,64 @@
-[
+{
+  "$schema": "./node_modules/json-server/schema.json",
+  "posts": [
     {
-        "id": 160,
-        "title": "External Hard Drive",
+      "id": "1",
+      "title": "a title",
+      "views": 100
+    },
+    {
+      "id": "2",
+      "title": "another title",
+      "views": 200
+    },
+    {
+      "id": "3",
+      "title": "haha",
+      "views": "3000"
+    },
+    {
+      "id": "7",
+      "title": "kem10",
+      "views": "1000"
+    },
+    {
+      "id": "6",
+      "title": "h50",
+      "views": "200"
+    },
+    {
+      "id": "8",
+      "title": "nghiep",
+      "views": "700"
+    },
+    {
+      "id": "15",
+      "title": "Mu",
+      "views": "99"
+    },
+    {
+      "title": "MC",
+      "views": "90",
+      "id": "4"
+    }
+  ],
+  "comments": [
+    {
+      "id": "1",
+      "text": "a comment about post 1",
+      "postId": "1"
+    },
+    {
+      "id": "2",
+      "text": "another comment about post 1",
+      "postId": "1"
+    }
+  ],
+  "profile": {
+    "name": "typicode"
+  },
+  "products": [
+    {
         "slug": "external-hard-drive",
         "price": 890,
         "description": "High-capacity external hard drive offering fast data transfer, reliable storage, and secure backup for personal and professional use.",
@@ -779,4 +836,5 @@
         "creationAt": "2026-01-28T02:55:46.000Z",
         "updatedAt": "2026-01-28T02:55:46.000Z"
     }
-]
+  ]
+}
