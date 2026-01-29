@@ -1,89 +1,213 @@
 // ========================================
 // Fetch API: Load Data từ GitHub
 // ========================================
-// Thay URL bên dưới bằng link RAW db.json của bạn từ GitHub
-// Ví dụ: https://raw.githubusercontent.com/ThanhHollow/fetch-data-exercise/main/db.json
 
 const API_URL = "https://raw.githubusercontent.com/phansythanh25-sys/NNPTUD-C5-BT-29-1/main/db.json";
 
+// Biến lưu trữ dữ liệu gốc
+let allProducts = [];
+let filteredProducts = [];
+let sortType = null; // 'nameAsc', 'nameDesc', 'priceAsc', 'priceDesc'
+
 /**
- * Hàm loadData: Lấy dữ liệu từ GitHub và hiển thị trên trang
+ * Hàm loadData: Lấy dữ liệu từ GitHub
  */
 async function loadData() {
     try {
-        // Thêm CORS header nếu cần
         const response = await fetch(API_URL, {
             method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
+            headers: { 'Accept': 'application/json' }
         });
 
-        // Kiểm tra response có thành công không
         if (!response.ok) {
             throw new Error(`HTTP Error: ${response.status}`);
         }
 
-        // Parse JSON từ response
         const data = await response.json();
-        console.log('Dữ liệu được tải:', data);
-        console.log('Loại dữ liệu:', typeof data);
-
-        // Lấy mảng products - kiểm tra nhiều khả năng
-        let products;
         
-        if (Array.isArray(data)) {
-            products = data;
-            console.log('✓ Dữ liệu là mảng trực tiếp');
-        } else if (data && typeof data === 'object') {
-            // Thử lấy từ các thuộc tính phổ biến
-            products = data.products || data.items || data.users || data.data;
-            console.log('Cấu trúc object, lấy key:', Object.keys(data).slice(0, 5));
-        }
-
-        // Kiểm tra xem products có phải là mảng không
+        // Xử lý dữ liệu
+        let products = Array.isArray(data) ? data : (data.products || data.items || data.users || data);
+        
         if (!Array.isArray(products)) {
-            console.error('Dữ liệu không hợp lệ:', data);
-            throw new Error(`Dữ liệu không phải là mảng. Nhận được: ${typeof products}`);
+            throw new Error('Dữ liệu không phải là mảng');
         }
 
-        // Lấy element container
-        const container = document.getElementById('data-container');
-        container.innerHTML = ""; // Xóa dòng "Đang tải"
-
-        // Nếu không có dữ liệu
-        if (products.length === 0) {
-            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #999;">Không có dữ liệu.</div>';
-            return;
-        }
-
-        // Duyệt qua từng sản phẩm và tạo element
-        products.forEach(product => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `
-                <h3>💼 ${product.title || 'N/A'}</h3>
-                <p><strong>Giá:</strong> $${product.price || 'N/A'}</p>
-                <p><strong>Danh mục:</strong> ${product.category?.name || 'N/A'}</p>
-                <p><strong>Mô tả:</strong> ${(product.description || 'N/A').substring(0, 80)}...</p>
-                <p>🆔 <strong>ID:</strong> ${product.id || 'N/A'}</p>
-                ${product.images?.[0] ? `<img src="${product.images[0]}" alt="${product.title}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-top: 10px;">` : ''}
-            `;
-            container.appendChild(div);
-        });
+        allProducts = products;
+        filteredProducts = [...allProducts];
+        
+        console.log(`✓ Tải ${allProducts.length} sản phẩm`);
+        renderTable();
 
     } catch (error) {
-        console.error("❌ Lỗi khi load data:", error);
-        const container = document.getElementById('data-container');
-        container.innerHTML = `
-            <div class="error" style="grid-column: 1/-1;">
+        console.error("❌ Lỗi:", error);
+        document.getElementById('tableContainer').innerHTML = `
+            <div class="error">
                 <strong>Không thể tải dữ liệu!</strong><br>
-                <small>Lỗi: ${error.message}</small><br>
-                <small>Vui lòng kiểm tra URL API hoặc kết nối internet.</small>
+                <small>${error.message}</small>
             </div>
         `;
     }
 }
 
-// Gọi hàm loadData khi trang tải xong
-document.addEventListener('DOMContentLoaded', loadData);
+/**
+ * Hàm tìm kiếm sản phẩm
+ */
+function searchProducts(keyword) {
+    keyword = keyword.toLowerCase().trim();
+    
+    if (keyword === '') {
+        filteredProducts = [...allProducts];
+    } else {
+        filteredProducts = allProducts.filter(product => 
+            product.title.toLowerCase().includes(keyword)
+        );
+    }
+    
+    // Reset sort khi tìm kiếm
+    sortType = null;
+    updateSortButtons();
+    renderTable();
+}
+
+/**
+ * Hàm sắp xếp sản phẩm
+ */
+function sortProducts(type) {
+    sortType = type;
+    
+    switch(type) {
+        case 'nameAsc':
+            filteredProducts.sort((a, b) => 
+                (a.title || '').localeCompare(b.title || '', 'vi')
+            );
+            break;
+        case 'nameDesc':
+            filteredProducts.sort((a, b) => 
+                (b.title || '').localeCompare(a.title || '', 'vi')
+            );
+            break;
+        case 'priceAsc':
+            filteredProducts.sort((a, b) => (a.price || 0) - (b.price || 0));
+            break;
+        case 'priceDesc':
+            filteredProducts.sort((a, b) => (b.price || 0) - (a.price || 0));
+            break;
+    }
+    
+    updateSortButtons();
+    renderTable();
+}
+
+/**
+ * Cập nhật trạng thái nút sort
+ */
+function updateSortButtons() {
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    if (sortType) {
+        const activeBtn = document.getElementById(`sort${sortType.charAt(0).toUpperCase() + sortType.slice(1)}`);
+        if (activeBtn) activeBtn.classList.add('active');
+    }
+}
+
+/**
+ * Hàm render bảng
+ */
+function renderTable() {
+    const tableContainer = document.getElementById('tableContainer');
+    
+    // Cập nhật số kết quả
+    document.getElementById('resultCount').textContent = filteredProducts.length;
+    
+    if (filteredProducts.length === 0) {
+        tableContainer.innerHTML = '<div class="no-data">Không tìm thấy sản phẩm nào.</div>';
+        return;
+    }
+
+    let tableHTML = `
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th style="text-align: left;">ID</th>
+                    <th style="text-align: left;">Tên Sản Phẩm</th>
+                    <th style="text-align: center;">Danh Mục</th>
+                    <th style="text-align: right;">Giá</th>
+                    <th style="text-align: left;">Mô Tả</th>
+                    <th style="text-align: center;">Hình Ảnh</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    filteredProducts.forEach(product => {
+        const title = product.title || 'N/A';
+        const category = product.category?.name || 'N/A';
+        const price = product.price || 0;
+        const description = (product.description || 'N/A').substring(0, 50);
+        const id = product.id || 'N/A';
+        const imageUrl = product.images?.[0] || '';
+
+        tableHTML += `
+            <tr>
+                <td class="product-id"><strong>${id}</strong></td>
+                <td class="product-title">${escapeHtml(title)}</td>
+                <td style="text-align: center;">
+                    <span class="product-category">${escapeHtml(category)}</span>
+                </td>
+                <td style="text-align: right;">
+                    <span class="product-price">$${price.toLocaleString()}</span>
+                </td>
+                <td style="color: #666; font-size: 13px;">${escapeHtml(description)}...</td>
+                <td style="text-align: center;">
+                    ${imageUrl ? `<img src="${imageUrl}" alt="${escapeHtml(title)}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; cursor: pointer;" title="Nhấp để xem ảnh">` : '<span style="color: #ccc;">Không có ảnh</span>'}
+                </td>
+            </tr>
+        `;
+    });
+
+    tableHTML += `
+            </tbody>
+        </table>
+    `;
+
+    tableContainer.innerHTML = tableHTML;
+}
+
+/**
+ * Hàm escape HTML để tránh XSS
+ */
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, m => map[m]);
+}
+
+/**
+ * Setup event listeners
+ */
+function setupEventListeners() {
+    // Search input
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', (e) => {
+        searchProducts(e.target.value);
+    });
+
+    // Sort buttons
+    document.getElementById('sortNameAsc').addEventListener('click', () => sortProducts('nameAsc'));
+    document.getElementById('sortNameDesc').addEventListener('click', () => sortProducts('nameDesc'));
+    document.getElementById('sortPriceAsc').addEventListener('click', () => sortProducts('priceAsc'));
+    document.getElementById('sortPriceDesc').addEventListener('click', () => sortProducts('priceDesc'));
+}
+
+// Khởi tạo khi trang load
+document.addEventListener('DOMContentLoaded', () => {
+    setupEventListeners();
+    loadData();
+});

@@ -3,103 +3,238 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Load Data từ GitHub</title>
+    <title>Quản Lý Sản Phẩm</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        .main-container {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
         }
 
         h1 {
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
             text-align: center;
-            font-size: 28px;
+            font-weight: 700;
+            font-size: 32px;
+        }
+
+        .controls-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            outline: none;
+        }
+
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .sort-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .sort-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.15);
+        }
+
+        .sort-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table {
+            margin-bottom: 0;
+        }
+
+        table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        table th {
+            font-weight: 700;
+            padding: 15px;
+            text-align: center;
+            border: none;
+        }
+
+        table td {
+            padding: 15px;
+            vertical-align: middle;
+            border-bottom: 1px solid #eee;
+        }
+
+        table tbody tr {
+            transition: all 0.3s ease;
+        }
+
+        table tbody tr:hover {
+            background-color: #f8f9ff;
+            box-shadow: inset 0 0 10px rgba(102, 126, 234, 0.05);
+        }
+
+        .product-title {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .product-category {
+            display: inline-block;
+            background: #f0e6ff;
+            color: #764ba2;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .product-price {
+            color: #27ae60;
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .product-id {
+            color: #999;
+            font-size: 13px;
         }
 
         .loading {
             text-align: center;
+            padding: 40px;
             color: #667eea;
-            font-weight: bold;
-            padding: 20px;
+            font-size: 18px;
+            font-weight: 600;
         }
 
         .error {
-            background-color: #fee;
-            color: #c33;
+            background-color: #f8d7da;
+            color: #721c24;
             padding: 15px;
-            border-radius: 5px;
-            border-left: 4px solid #c33;
-        }
-
-        #data-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .item {
-            border: 2px solid #667eea;
-            padding: 20px;
             border-radius: 8px;
-            background: #f9f9f9;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 1px solid #f5c6cb;
         }
 
-        .item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-            background: #fff;
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
         }
 
-        .item h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-            font-size: 18px;
-        }
-
-        .item p {
+        .result-count {
             color: #666;
             font-size: 14px;
-            margin: 8px 0;
-        }
-
-        .item .role {
-            color: #764ba2;
-            font-weight: bold;
-            margin-top: 10px;
-            display: inline-block;
-            background: #f0e6ff;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 12px;
+            margin-top: 15px;
+            text-align: right;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📊 Danh sách sản phẩm từ GitHub</h1>
-        <div id="data-container" class="loading">Đang tải dữ liệu...</div>
+    <div class="main-container">
+        <h1>📊 Quản Lý Sản Phẩm</h1>
+
+        <!-- Controls Section -->
+        <div class="controls-section">
+            <!-- Search Box -->
+            <div class="search-box">
+                <div class="input-group">
+                    <span class="input-group-text" style="background: #667eea; color: white; border: none;">
+                        <i class="fas fa-search"></i>
+                    </span>
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="form-control" 
+                        placeholder="🔍 Tìm kiếm theo tên sản phẩm..."
+                        style="border: 2px solid #ddd;"
+                    >
+                </div>
+            </div>
+
+            <!-- Sort Buttons -->
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="sort-buttons">
+                    <button class="sort-btn" id="sortNameAsc" title="Sắp xếp tên A-Z">
+                        <i class="fas fa-arrow-up-a-z"></i> Tên (A-Z)
+                    </button>
+                    <button class="sort-btn" id="sortNameDesc" title="Sắp xếp tên Z-A">
+                        <i class="fas fa-arrow-down-z-a"></i> Tên (Z-A)
+                    </button>
+                    <button class="sort-btn" id="sortPriceAsc" title="Sắp xếp giá thấp đến cao">
+                        <i class="fas fa-arrow-up"></i> Giá (Tăng)
+                    </button>
+                    <button class="sort-btn" id="sortPriceDesc" title="Sắp xếp giá cao đến thấp">
+                        <i class="fas fa-arrow-down"></i> Giá (Giảm)
+                    </button>
+                </div>
+            </div>
+            <div class="result-count">
+                <span id="resultCount">Đang tải...</span> kết quả
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-responsive" id="tableContainer">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...
+            </div>
+        </div>
     </div>
 
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
