@@ -27,13 +27,24 @@ async function loadData() {
         // Parse JSON từ response
         const data = await response.json();
         console.log('Dữ liệu được tải:', data);
+        console.log('Loại dữ liệu:', typeof data);
 
-        // Lấy mảng users (giả sử db.json có cấu trúc { "users": [...] })
-        const users = data.users || data;
+        // Lấy mảng products - kiểm tra nhiều khả năng
+        let products;
+        
+        if (Array.isArray(data)) {
+            products = data;
+            console.log('✓ Dữ liệu là mảng trực tiếp');
+        } else if (data && typeof data === 'object') {
+            // Thử lấy từ các thuộc tính phổ biến
+            products = data.products || data.items || data.users || data.data;
+            console.log('Cấu trúc object, lấy key:', Object.keys(data).slice(0, 5));
+        }
 
-        // Kiểm tra xem users có phải là mảng không
-        if (!Array.isArray(users)) {
-            throw new Error('Dữ liệu không phải là mảng');
+        // Kiểm tra xem products có phải là mảng không
+        if (!Array.isArray(products)) {
+            console.error('Dữ liệu không hợp lệ:', data);
+            throw new Error(`Dữ liệu không phải là mảng. Nhận được: ${typeof products}`);
         }
 
         // Lấy element container
@@ -41,20 +52,22 @@ async function loadData() {
         container.innerHTML = ""; // Xóa dòng "Đang tải"
 
         // Nếu không có dữ liệu
-        if (users.length === 0) {
+        if (products.length === 0) {
             container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: #999;">Không có dữ liệu.</div>';
             return;
         }
 
-        // Duyệt qua từng user và tạo element
-        users.forEach(user => {
+        // Duyệt qua từng sản phẩm và tạo element
+        products.forEach(product => {
             const div = document.createElement('div');
             div.className = 'item';
             div.innerHTML = `
-                <h3>${user.name || 'N/A'}</h3>
-                <p>📧 <strong>Email:</strong> ${user.email || 'N/A'}</p>
-                <p>🆔 <strong>ID:</strong> ${user.id || 'N/A'}</p>
-                ${user.role ? `<span class="role">${user.role}</span>` : ''}
+                <h3>💼 ${product.title || 'N/A'}</h3>
+                <p><strong>Giá:</strong> $${product.price || 'N/A'}</p>
+                <p><strong>Danh mục:</strong> ${product.category?.name || 'N/A'}</p>
+                <p><strong>Mô tả:</strong> ${(product.description || 'N/A').substring(0, 80)}...</p>
+                <p>🆔 <strong>ID:</strong> ${product.id || 'N/A'}</p>
+                ${product.images?.[0] ? `<img src="${product.images[0]}" alt="${product.title}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 5px; margin-top: 10px;">` : ''}
             `;
             container.appendChild(div);
         });
